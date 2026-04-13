@@ -67,48 +67,40 @@ st.markdown("""
 st.title("🃏 MATH MAN v3.12")
 st.write("### *'Show me the cards, Tobias.'*")
 
-# --- 5. CAMERA INPUT ---
 cam_image = st.camera_input("SCANNER ACTIVE")
 
 if cam_image:
-    # Convert camera stream to PIL Image
     image = Image.open(cam_image).convert("RGB")
     
-    with st.spinner('MATH MAN IS CRUNCHING THE NUMBERS...'):
-        # --- 6. INFERENCE (The AI part) ---
-        # The SDK handles the API call and image processing automatically
-        results = model.infer(image)[0]
+    with st.spinner('MATH MAN IS LISTING CARDS...'):
+        # Keep confidence low (0.15) while we test accuracy
+        results = model.infer(image, confidence=0.15)[0]
         
         draw = ImageDraw.Draw(image)
         detected_cards = []
         
         for prediction in results.predictions:
-            # Extract data from the SDK object
             label = prediction.class_name
-            x, y, w, h = prediction.x, prediction.y, prediction.width, prediction.height
             detected_cards.append(label)
             
-            # Math: Calculate box corners for drawing
+            # Box Coordinates
+            x, y, w, h = prediction.x, prediction.y, prediction.width, prediction.height
             left, top, right, bottom = x - w/2, y - h/2, x + w/2, y + h/2
             
-            # Draw Neo-Brutalist boxes (Black border + Green inner)
-            draw.rectangle([left, top, right, bottom], outline="black", width=7)
-            draw.rectangle([left, top, right, bottom], outline="#00E676", width=2)
-            draw.text((left, top - 20), label, fill="black")
+            # Draw simple, clear boxes
+            draw.rectangle([left, top, right, bottom], outline="#00E676", width=5)
+            draw.text((left, top - 20), label, fill="white")
 
-        # --- 7. FINAL CALCULATION ---
-        score = calculate_rummy_score(detected_cards)
-
-    # Display Result
-    st.image(image, caption="MATH MAN'S VISION", use_container_width=True)
+    # --- 6. DISPLAY LIST INSTEAD OF SCORE ---
+    st.image(image, width='stretch')
     
-    st.markdown(f"""
-        <div class="score-box">
-            <h1 style="font-size: 80px; margin: 0;">{score}</h1>
-            <p style="letter-spacing: 3px; font-weight: bold;">TOTAL RUMMY POINTS</p>
-            <p style="font-size: 14px;">DETECTED: {', '.join(detected_cards) if detected_cards else 'NONE'}</p>
-        </div>
-    """, unsafe_allow_html=True)
-
-    if st.button("LOG THIS ROUND"):
-        st.balloons()
+    st.markdown("### 🗃️ Detected Inventory")
+    
+    if detected_cards:
+        # Create a nice vertical list
+        for i, card in enumerate(detected_cards, 1):
+            st.write(f"**{i}.** {card}")
+        
+        st.info(f"Total Cards Found: {len(detected_cards)}")
+    else:
+        st.warning("No cards detected. Try adjusting the light or distance!")
