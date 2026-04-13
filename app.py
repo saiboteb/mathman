@@ -4,9 +4,14 @@ import numpy as np
 from inference import get_model
 from PIL import Image, ImageDraw
 
-# --- 1. CONFIGURATION ---
-# Replace with your actual Private API Key (starts with rf_)
-API_KEY = "azLr1W9xyQ4Kp3Zenuqf" 
+# --- NEW SECURE CONFIGURATION ---
+# This looks for the key in your local secrets.toml OR the Streamlit Cloud settings
+if "ROBOFLOW_API_KEY" in st.secrets:
+    API_KEY = st.secrets["ROBOFLOW_API_KEY"]
+else:
+    st.error("Missing Roboflow API Key! Check your secrets configuration.")
+    st.stop()
+
 MODEL_ID = "playing-cards-ow27d/4"
 
 # --- 2. THE BRAIN ---
