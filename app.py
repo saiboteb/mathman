@@ -38,15 +38,39 @@ def get_card_info(card_code):
     return name, score
 
 def process_scan_history(history):
-    """Statistical Consensus: Finds the most common hand size and returns those cards."""
-    if not history: return []
-    lengths = [len(frame) for frame in history]
-    if not lengths: return []
-    target_length = Counter(lengths).most_common(1)[0][0]
-    if target_length == 0: return []
+    """
+    Temporal Persistence Algorithm: 
+    Calculates the exact frequency of every card across all frames to filter out AI hallucinations.
+    """
+    if not history: 
+        return []
+        
+    total_frames = len(history)
+    if total_frames == 0: 
+        return []
+
+    # Flatten the history into one giant list of every card seen in every frame
     all_cards = [card for frame in history for card in frame]
-    best_cards = [card for card, count in Counter(all_cards).most_common(target_length)]
-    return best_cards
+    
+    # Count the total occurrences of each card
+    card_counts = Counter(all_cards)
+    
+    final_hand = []
+    
+    for card, total_count in card_counts.items():
+        # Divide by total frames to get the average appearances per frame
+        # e.g., if total_frames=20 and '10D' appeared 18 times -> 0.9 appearances per frame
+        avg_appearance = total_count / total_frames
+        
+        # Round to the nearest whole number. 
+        # 0.9 rounds to 1 card. 0.15 (a glitch) rounds to 0 cards. 
+        # 1.8 (holding two of the same card) rounds to 2 cards.
+        quantity = round(avg_appearance)
+        
+        # Add that exact quantity of the card to our final hand
+        final_hand.extend([card] * quantity)
+        
+    return final_hand
 
 # --- 3. STATE MACHINE ---
 if 'stage' not in st.session_state: st.session_state.stage = 'setup'
