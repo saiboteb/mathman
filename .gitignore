@@ -1,0 +1,8 @@
+# Ignore the virtual environment
+mathman_env/
+
+# Ignore your local secrets!
+.streamlit/secrets.toml
+
+# Ignore the generated bridge folders
+scanner_bridge*/
