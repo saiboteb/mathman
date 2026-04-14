@@ -1,4 +1,1 @@
 streamlit
-inference
-opencv-python-headless
-pillow
